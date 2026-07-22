@@ -1023,3 +1023,185 @@ total fn mutate(x: Int) -> Unit {
                     (borrow_expr
                       (expr
                         (identifier)))))))))))))
+
+===============================================================================
+Match — qualified enum-variant constructor patterns
+===============================================================================
+
+fn f() -> Int {
+    match r {
+        Enum::A(x) => x,
+        Enum::B => 0,
+        _ => 1,
+    }
+}
+
+-------------------------------------------------------------------------------
+
+(program
+  (declaration
+    (fn_decl
+      (identifier)
+      (return_type
+        (type_expr
+          (base_type
+            (identifier))))
+      (block
+        (statement
+          (match_stmt
+            (expr
+              (identifier))
+            (match_arm
+              (pattern
+                (constructor_pattern
+                  (identifier)
+                  (identifier)
+                  (pattern_list
+                    (pattern
+                      (identifier)))))
+              (expr
+                (identifier)))
+            (match_arm
+              (pattern
+                (path_pattern
+                  (identifier)
+                  (identifier)))
+              (expr
+                (literal
+                  (integer_literal))))
+            (match_arm
+              (pattern)
+              (expr
+                (literal
+                  (integer_literal))))))))))
+
+===============================================================================
+Match — nested constructor patterns
+===============================================================================
+
+fn f() -> Int {
+    match r {
+        A::B(C::D(x)) => x,
+    }
+}
+
+-------------------------------------------------------------------------------
+
+(program
+  (declaration
+    (fn_decl
+      (identifier)
+      (return_type
+        (type_expr
+          (base_type
+            (identifier))))
+      (block
+        (statement
+          (match_stmt
+            (expr
+              (identifier))
+            (match_arm
+              (pattern
+                (constructor_pattern
+                  (identifier)
+                  (identifier)
+                  (pattern_list
+                    (pattern
+                      (constructor_pattern
+                        (identifier)
+                        (identifier)
+                        (pattern_list
+                          (pattern
+                            (identifier))))))))
+              (expr
+                (identifier)))))))))
+
+===============================================================================
+Match arm — method call chain in RHS expression
+===============================================================================
+
+fn f() -> Int {
+    match r {
+        A::B(t) => x.concat(foo(t.n)).concat(")"),
+        _ => 0,
+    }
+}
+
+-------------------------------------------------------------------------------
+
+(program
+  (declaration
+    (fn_decl
+      (identifier)
+      (return_type
+        (type_expr
+          (base_type
+            (identifier))))
+      (block
+        (statement
+          (match_stmt
+            (expr
+              (identifier))
+            (match_arm
+              (pattern
+                (constructor_pattern
+                  (identifier)
+                  (identifier)
+                  (pattern_list
+                    (pattern
+                      (identifier)))))
+              (expr
+                (expr
+                  (expr
+                    (identifier))
+                  (identifier)
+                  (arg_list
+                    (expr
+                      (fn_call_expr
+                        (identifier)
+                        (arg_list
+                          (expr
+                            (expr
+                              (identifier))
+                            (identifier)))))))
+                (identifier)
+                (arg_list
+                  (expr
+                    (literal
+                      (string_literal))))))
+            (match_arm
+              (pattern)
+              (expr
+                (literal
+                  (integer_literal))))))))))
+
+===============================================================================
+Struct construction — no trailing comma
+===============================================================================
+
+fn f() -> Point {
+    Point { x: 1, y: 2 }
+}
+
+-------------------------------------------------------------------------------
+
+(program
+  (declaration
+    (fn_decl
+      (identifier)
+      (return_type
+        (type_expr
+          (base_type
+            (identifier))))
+      (block
+        (expr
+          (construct_expr
+            (identifier)
+            (identifier)
+            (expr
+              (literal
+                (integer_literal)))
+            (identifier)
+            (expr
+              (literal
+                (integer_literal)))))))))

@@ -1264,6 +1264,10 @@
           "named": true
         },
         {
+          "type": "path_pattern",
+          "named": true
+        },
+        {
           "type": "some_pattern",
           "named": true
         },
@@ -1336,6 +1340,21 @@
     }
   },
   {
+    "type": "path_pattern",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": true,
+      "required": true,
+      "types": [
+        {
+          "type": "identifier",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
     "type": "pattern",
     "named": true,
     "fields": {},
@@ -1369,6 +1388,10 @@
         },
         {
           "type": "or_pattern",
+          "named": true
+        },
+        {
+          "type": "path_pattern",
           "named": true
         },
         {
@@ -1912,6 +1935,10 @@
           "named": true
         },
         {
+          "type": "path_pattern",
+          "named": true
+        },
+        {
           "type": "some_pattern",
           "named": true
         },
@@ -2253,6 +2280,10 @@
   },
   {
     "type": ".",
+    "named": false
+  },
+  {
+    "type": "..",
     "named": false
   },
   {

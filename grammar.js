@@ -506,9 +506,13 @@ export default grammar({
         ),
         // Postfix — checked coercion: `expr as Type` (#1324)
         $.as_expr,
-        // Member access: method call (must come before field access — more specific)
+        // Member access: method call.  Precedence bumped one above CALL so
+        // GLR consistently prefers `foo.bar(...)` over `foo.bar` followed by
+        // an outer `(...)` — the "outer paren" reading otherwise wins in some
+        // contexts (notably match-arm expressions), letting a `(y)` in a
+        // trailing `.concat(y)` be misparsed as a new arm's tuple pattern.
         prec.left(
-          PREC.CALL,
+          PREC.CALL + 1,
           seq(
             field("object", $.expr),
             ".",
@@ -616,7 +620,13 @@ export default grammar({
         seq(
           field("type", $.identifier),
           "{",
-          repeat(seq(field("field", $.identifier), ":", $.expr, ",")),
+          optional(
+            seq(
+              seq(field("field", $.identifier), ":", $.expr),
+              repeat(seq(",", field("field", $.identifier), ":", $.expr)),
+              optional(",")
+            )
+          ),
           "}"
         )
       ),
@@ -712,17 +722,37 @@ export default grammar({
         $.err_pattern,
         $.constructor_pattern,
         $.struct_pattern,
+        $.path_pattern,
         $.identifier
       ),
 
+    // Qualified variant path — matches `Enum::Variant` as a standalone pattern
+    // (bare enum variants with no payload).  `constructor_pattern` /
+    // `struct_pattern` reuse the same one-or-two-segment head shape inline.
+    path_pattern: ($) => seq($.identifier, "::", $.identifier),
+
     constructor_pattern: ($) =>
-      seq($.identifier, "(", optional($.pattern_list), ")"),
+      seq(
+        $.identifier,
+        optional(seq("::", $.identifier)),
+        "(",
+        optional($.pattern_list),
+        ")"
+      ),
 
     struct_pattern: ($) =>
       seq(
         $.identifier,
+        optional(seq("::", $.identifier)),
         "{",
-        repeat(seq($.identifier, ":", $._base_pattern, ",")),
+        optional(
+          seq(
+            seq($.identifier, ":", $._base_pattern),
+            repeat(seq(",", $.identifier, ":", $._base_pattern)),
+            optional(",")
+          )
+        ),
+        optional(".."),
         "}"
       ),
 
