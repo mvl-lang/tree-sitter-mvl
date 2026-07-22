@@ -34,3 +34,9 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# tree-sitter build artifacts
+*.so
+*.dylib
+*.dll
+/build/
