@@ -276,9 +276,35 @@ export default grammar({
       seq("ghost", "let", $.pattern, ":", $.type_expr, "=", $.expr, ";"),
 
     // Refinement keywords used in expressions/predicates
-    decreases_expr: ($) => seq("decreases", $.expr),
-    forall_expr: ($) => seq("forall", $.identifier, ":", $.type_expr, ".", $.expr),
-    exists_expr: ($) => seq("exists", $.identifier, ":", $.type_expr, ".", $.expr),
+    decreases_expr: ($) => seq("decreases", $.ref_expr),
+    // Bounded quantifiers (#1915) — matches the EBNF grammar; the unbounded
+    // `IDENT ":" type_expr "." expr` form was rejected under the same issue.
+    forall_expr: ($) =>
+      seq(
+        "forall",
+        $.identifier,
+        "in",
+        "[",
+        $.integer_literal,
+        "..",
+        $.integer_literal,
+        "]",
+        ".",
+        $.ref_expr
+      ),
+    exists_expr: ($) =>
+      seq(
+        "exists",
+        $.identifier,
+        "in",
+        "[",
+        $.integer_literal,
+        "..",
+        $.integer_literal,
+        "]",
+        ".",
+        $.ref_expr
+      ),
 
     security_modifier: ($) => choice("public", "tainted", "secret"),
 
@@ -424,6 +450,9 @@ export default grammar({
     ref_atom: ($) =>
       choice(
         seq("len", "(", $.identifier, ")"),
+        seq("old", "(", $.ref_expr, ")"),
+        $.forall_expr,
+        $.exists_expr,
         seq("(", $.ref_expr, ")"),
         $.identifier,
         $.integer_literal,
@@ -489,7 +518,15 @@ export default grammar({
 
     for_stmt: ($) => seq("for", $.pattern, "in", $.expr, $.block),
 
-    while_stmt: ($) => seq("while", $.expr, $.block),
+    // Phase 3, #621: `invariant` clauses; Phase 5, #628: `decreases` termination measure.
+    while_stmt: ($) =>
+      seq(
+        "while",
+        $.expr,
+        repeat(seq("invariant", $.refinement)),
+        optional($.decreases_expr),
+        $.block
+      ),
 
     expr_stmt: ($) => seq($.expr, ";"),
 
